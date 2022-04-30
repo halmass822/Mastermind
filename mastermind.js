@@ -1,3 +1,13 @@
+
+    function digitize(input) {
+        input = input.toString();
+        if(input.length === 1) {
+            return `0${input}`;
+        } else {
+            return input;
+        }
+    }
+
 //returns a div containing a grid with each grid tile id as its respective coordinate
 //also creates a guessBox object and appends it to the global guessObjects array
     var gridWidth;
@@ -12,7 +22,8 @@
         output.style.display = 'inline-block';
         for( i = 0; i < height; i++ ){
             let row = document.createElement('div');
-            row.style.height = '42px';
+            row.style.height = '80px';
+            row.className = "gridRow"
             for( j = 0; j < width; j++){
                 let tileElement = document.createElement('p');
                 //grid is created top-down so the id is calculated such that bottom left grid tile is 11, stored as a string
@@ -29,7 +40,8 @@
             let buttonElement = document.createElement('button');
             buttonElement.id = `submitButton${digitize(gridHeight - i)}`;
             buttonElement.className = 'submitGuessButton';
-            output.appendChild(buttonElement);
+            buttonElement.innerText = "Submit";
+            row.appendChild(buttonElement);
             generatedGuessBoxObjects.push(new guessBox(i + 1));
         }
         gridWidth = width;
@@ -72,9 +84,9 @@
         guesses;
         interactable;
         constructor(inputGuessNumber){
-            guessNumber = inputGuessNumber;
-            guesses = [,,,,];
-            interactable = false;
+            this.guessNumberguessNumber = inputGuessNumber;
+            this.guesses = [,,,,];
+            this.interactable = false;
         }
         reset(){
             this.guesses = [,,,,];
@@ -160,3 +172,5 @@
         generatedTileObjects.forEach((x) => x.changeColor("white"));
         guessBox.getGuessBox(1).interactable = true;
     }
+
+document.getElementById("gridContainer").appendChild(generateGrid(4,10));
