@@ -1,55 +1,3 @@
-
-    function digitize(input) {
-        input = input.toString();
-        if(input.length === 1) {
-            return `0${input}`;
-        } else {
-            return input;
-        }
-    }
-
-//returns a div containing a grid with each grid tile id as its respective coordinate
-//also creates a guessBox object and appends it to the global guessObjects array
-    var gridWidth;
-    var gridHeight;
-    var generatedTiles = [];
-    var generatedTileObjects = [];
-    var generatedGuessBoxObjects = [];
-    function generateGrid(width, height){
-        let output = document.createElement('div');
-        output.style.border = '2px solid black';
-        output.style.margin = '25px auto';
-        output.style.display = 'inline-block';
-        for( i = 0; i < height; i++ ){
-            let row = document.createElement('div');
-            row.style.height = '80px';
-            row.className = "gridRow"
-            for( j = 0; j < width; j++){
-                let tileElement = document.createElement('p');
-                //grid is created top-down so the id is calculated such that bottom left grid tile is 11, stored as a string
-                let generatedId = digitize([j + 1]) + digitize([height - i]);
-                tileElement.id = generatedId;
-                //created element is added to the generated tiles array then appended to the row
-                generatedTiles.push(generatedId);
-                tileElement.className = 'gridTile';
-                row.appendChild(tileElement);
-                const generatedObject = new gridTile(generatedId);
-                generatedTileObjects.push(generatedObject);
-            }
-            output.appendChild(row);
-            let buttonElement = document.createElement('button');
-            buttonElement.id = `submitButton${digitize(gridHeight - i)}`;
-            buttonElement.className = 'submitGuessButton';
-            buttonElement.innerText = "Submit";
-            row.appendChild(buttonElement);
-            generatedGuessBoxObjects.push(new guessBox(i + 1));
-        }
-        gridWidth = width;
-        gridHeight = height;
-        console.log(`Generated ${width} by ${height} grid`);
-        return output;
-    }
-
     //returns an array of 4 random colors from the colors array
     function getRandomPegs() {
         const colors = ['blue','green','red','yellow','pink','orange'];
@@ -60,23 +8,24 @@
 
     var winningPegs = getRandomPegs();
 
-    class gridTile {
-        tileCoordinate;
-        tileColor;
-        constructor(inputCoordinate){
-            if(!/\w{4}$/.test(inputCoordinate)){
-                throw "must construct tile class using a string coordinate"
-            } else {
-                this.tileCoordinate = inputCoordinate;
-            }
+    //returns an array of all the related elements to that guessNumber - index 0 - 3 are the guesses, 4-7 are the responses
+    function getElements(guessNumber) {
+        let outputArray = [];
+        const guessIds = [];
+        const responseIds = [];
+        //gets all the element ids and pushes them to the respective array
+        for(i = 1; i < 5; i++) {
+            guessIds.push(`guess${guessNumber}${i}`);
+            responseIds.push(`response${guessNumber}${i}`);
         }
-        changeColor(inputColor){
-            this.tileContent = inputColor;
-            document.getElementById(this.tileCoordinate).style.backgroundColor = inputColor;
-        }
-        static getGridtile(inputCoordinate){
-            return generatedTileObjects.filter((x) => x.tileCoordinate === inputCoordinate)[0];
-        }
+        //gets the elements from the arrays and pushes them to the output array
+        guessIds.forEach((x) => {
+            outputArray.push(document.getElementById(x));
+        })
+        responseIds.forEach((x) => {
+            outputArray.push(document.getElementById(x));
+        })
+        return outputArray;
     }
 
     class guessBox {
