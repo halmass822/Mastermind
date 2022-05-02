@@ -25,101 +25,130 @@
         responseIds.forEach((x) => {
             outputArray.push(document.getElementById(x));
         })
+        const buttonElement = document.getElementById(`submit${guessNumber}`);
+        outputArray.push(buttonElement);
         return outputArray;
     }
 
+    //represents each guess. stores the users input, methods to check the guess and reset the guess. by default interactable property is false
+    //has a static method to get the guessBox object by any related element id
+        //9 guessBox objects are created and pushed to the guessBoxObjects array, see the line below this class
+        var guessBoxObjects = [];
     class guessBox {
         guessNumber;
         guesses;
         interactable;
+        elements;
         constructor(inputGuessNumber){
-            this.guessNumberguessNumber = inputGuessNumber;
+            this.guessNumber = inputGuessNumber.toString();
             this.guesses = [,,,,];
+            this.elements = getElements(inputGuessNumber);
             this.interactable = false;
         }
         reset(){
             this.guesses = [,,,,];
+            this.elements.forEach((x) => x.style.backgroundColor = "lightgray");
+            this.elements[0].parentElement.style.backgroundColor = "white";
+            this.elements[8].innerText = "Submit"
+            this.elements[8].removeEventListener('click',startGame);
             this.interactable = false;
         }
         checkGuess(inputArray) {
-            let blackPegs = 0;
-            let whitePegs = 0;
-            for(i = 0; i < 4; i++){
-                if(winningPegs.includes(this.guesses[i])){
-                    if(winningPegs[i] === guess[i]){
-                        whitePegs++;
-                    } else {
-                        blackPegs++;
+            if(this.interactable){
+                let blackPegs = 0;
+                let whitePegs = 0;
+                for(i = 0; i < 4; i++){
+                    if(winningPegs.includes(this.guesses[i])){
+                        if(winningPegs[i] === guess[i]){
+                            whitePegs++;
+                        } else {
+                            blackPegs++;
+                        }
                     }
                 }
-            }
-            let pegsIncrementor = 0;
-            for(i = 0; i < whitePegs; i++){
-                targetXCoord = 5 + pegsIncrementor;
-                targetYCoord = gridHeight - guessNumber + 1;
-                targetCoord = digitize(targetXCoord) + digitize(targetYCoord);
-                gridTile.getGridtile(targetCoord).changeColor("#F0F8FF");
-                pegsIncrementor++;
-            }
-            for(i = 0; i < blackPegs; i++){
-                targetXCoord = 5 + pegsIncrementor;
-                targetYCoord = gridHeight - guessNumber + 1;
-                targetCoord = digitize(targetXCoord) + digitize(targetYCoord);
-                gridTile.getGridtile(targetCoord).changeColor("black");
-                pegsIncrementor++;
+                //this.elements contains an array of both the guess and response elements, responses starting at index 4
+                //incrementor to move the index over and target the next response element
+                let indexIncrementor = 4;
+                for(i = 0; i < whitePegs; i++){
+                    this.elements[i].style.backgroundColor = "#F0F8FF";
+                    indexIncrementor++
+                }
+                for(i = 0; i < blackPegs; i++){
+                    this.elements[i].style.backgroundColor = "black";
+                    indexIncrementor++
+                }
+                this.interactable = false;
+                
+                if(whitePegs = 4){
+                    victory(this.guessNumber);
+                } else {
+                    const nextGuessbox = guessBoxObjects[this.guessNumber];
+                    nextGuessbox.interactable = true;
+                }
             }
         }
-        static getGuessBox(inputGuessRow){
-            return generatedGuessBoxObjects.filter((x) => x.guessNumber === inputGuessRow)[0];
+        //static function to get the respective guessBox object based on the guess id
+        static getGuessBox(inputId){
+            if(inputId.includes("guess")){
+                const targetGuessNumber = inputId.slice(8,9);
+                const targetObject = guessBoxObjects.filter((x) => x.guessNumber === targetGuessNumber)[0];
+            } else if(inputId.includes("submit")){
+                const targetGuessNumber = inputId.slice(6,7);
+                const targetObject = guessBoxObjects.filter((x) => x.guessNumber === targetGuessNumber)[0];
+            }
         }
     }
-
-    function addPeg(coordinate, inputColor){
-        const guessRowNumber = gridHeight - Number(coordinate.slice(2,4)) + 1;
-        const guessRowObject = guessBox.getGuessBox(guessRowNumber);
-        const guessNumberIndex = Number(coordinate.slice(0,2)) - 1;
-        if(guessNumber < 5 && guessRowObject.interactable){
-            guessRowObject.guesses[guessNumberIndex] = inputColor;
-            gridTile.getGridtile(coordinate).changeColor(inputColor);
-        }
-    }
-
-    function submitGuess(submitButtonId){
-        const targetGuessNumber = submitButtonId.slice(12,14);
-        const guessBoxObject = guessBox.getGuessBox(targetGuessNumber);
-        guessBoxObject.interactable = false;
-        guessBoxObject.checkGuess;
+    //create the array of guessBoxObjects
+    for(i = 1; i < 10; i++){
+        guessBoxObjects.push(new guessBox(i));
     }
 
     //selectedColor[0] is current selected color, will increment left / right using below function
     var selectedColor = ['blue','green','red','yellow','pink','orange'];
-    function incrementSelectedColor(incrementDirection){
+    function incrementSelectedColor(){
         if(incrementDirection === "foward"){
             const firstColor = selectedColor.shift();
             selectedColor.push(firstColor);
-            document.getElementById("selectedColorDisplay").style.backgroundColor = selectedColor[0];
-        } else if(incrementDirection === "backward"){
-            const lastColor = selectedColor.pop();
-            selectedColor.unshift(lastColor);
-            document.getElementById("selectedColorDisplay").style.backgroundColor = selectedColor[0];
-        } else {
-            throw `incrementSelectedColor error, invalid input ${incrementDirection}`;
+            return selectedColor[0];
         }
+    }
+
+    function addPeg(targetId){
+        const targetElement = document.getElementById(targetId);
+        const guessNumber = targetId.slice(6,7);
+        const guessIndex = (guessNumber - 1);
+        const targetGuessBox = guessBox.getGuessBox(targetId);
+        if (targetGuessBox.interactable){
+            targetGuessBox.guesses[guessIndex] = selectedColor[0];
+            targetGuessBox.elements[guessIndex].style.backgroundColor = selectedColor[0];
+            incrementSelectedColor();
+        }
+    }
+
+    function submitGuess(targetId){
+        targetElement = document.getElementById(targetId);
+        targetElement.checkGuess();
     }
 
     function userInteraction(event){
         const targetElement = event.target;
-        if(event.target.className === "gridTile"){
-            addPeg(event.id,selectedColor);
-        } else if(event.target.className === "submitGuessButton"){
-            submitGuess(targetElement.id);
+        if(targetElement.id.includes("submit")){
+            guessBox.getGuessBox(targetElement.id).checkGuess()
+        } else if(targetElement.id.includes("guess")){
+            addPeg(targetElement.id);
         }
     }
 
     function startGame() {
-        generatedGuessBoxObjects.forEach((x) => x.reset());
-        generatedTileObjects.forEach((x) => x.changeColor("white"));
-        guessBox.getGuessBox(1).interactable = true;
+        guessBoxObjects.forEach((x) => x.reset());
+        guessBoxObjects[0].interactable = true;
     }
 
-document.getElementById("gridContainer").appendChild(generateGrid(4,10));
+    function victory(guessNumber) {
+        const targetGuessBox = guessBoxObjects[guessNumber - 1];
+        targetGuessBox.elements[0].parentElement.style.backgroundColor = "green";
+        targetGuessBox.elements[8].innerText = "play again";
+        targetGuessBox.eleemnts[8].addEventListener('click',startGame);
+    }
+
+    
